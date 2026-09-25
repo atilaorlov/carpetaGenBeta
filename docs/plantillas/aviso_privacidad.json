@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "pages": 1,
+  "fields": [
+    {
+      "id": "p_nombre",
+      "page": 1,
+      "x": 0.170,
+      "y": 0.720,
+      "width": 0.270,
+      "height": 0.025,
+      "name": "nombre_apellido",
+      "type": "text",
+      "font_size": 14,
+      "max_chars": 100,
+      "align": "left",
+      "transparent": true,
+      "no_border": true
+    },
+    {
+      "id": "p_fecha",
+      "page": 1,
+      "x": 0.170,
+      "y": 0.765,
+      "width": 0.270,
+      "height": 0.025,
+      "name": "fecha",
+      "type": "text",
+      "font_size": 14,
+      "max_chars": 100,
+      "align": "left",
+      "transparent": true,
+      "no_border": true
+    }
+  ]
+}

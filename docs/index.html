@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#0c3976">
+    <title>Carpetas · Solicitudes</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <div class="brand">
+          SOLICITUDES <span>· Telmex</span>
+        </div>
+        <button type="button" id="home" class="tag" title="Volver al inicio">⌂ Inicio</button>
+      </header>
+
+      <section class="intro">
+        <h1>Generar carpeta</h1>
+        <p>Captura una sola vez. Envía a validación y completa el folio después.</p>
+      </section>
+
+      <nav id="steps" aria-label="Pasos"></nav>
+
+      <form id="form" novalidate>
+        <section id="panel"></section>
+        <div class="actions">
+          <button type="button" id="back" class="secondary">Atrás</button>
+          <button type="button" id="next">Continuar</button>
+        </div>
+      </form>
+
+      <footer>
+        <div>Los datos se guardan únicamente en este navegador.</div>
+        <div style="margin-top:6px;font-size:11px;">
+          © <span id="year"></span> Atila Orlov · Todos los derechos reservados
+        </div>
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
