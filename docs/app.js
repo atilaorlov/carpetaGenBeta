@@ -244,7 +244,7 @@ function docField(key, label) {
   const f = state.files[key];
   return `<div class="doc">` +
     `<label for="doc_${key}">${esc(label)} · opcional</label>` +
-    `<input type="file" id="doc_${key}" data-file="${key}" accept="image/*" capture="environment">` +
+    `<input type="file" id="doc_${key}" data-file="${key}" accept="image/*">` +
     `<small>${f ? esc(f.name) + ' · guardada localmente' : 'Sin imagen seleccionada'}</small>` +
     `${f ? `<button class="secondary" type="button" data-remove="${key}">Quitar imagen</button>` : ''}` +
     `</div>`;
