@@ -10,7 +10,9 @@ const PORTA_FIELDS_URL = 'plantillas/porta.json';
 // Cada renglón es un par estrategia + clave. Agrega los que necesites.
 const CREDENTIALS = [
   { estrategia: '10001147', clave: '350665' },
-  { estrategia: '10000741', clave: '355882' }
+  { estrategia: '10000741', clave: '355882' },
+  { estrategia: '10001147', clave: '354983' }
+  
 ];
 
 const STEPS = ['Solicitud', 'Cliente', 'Instalación', 'Domicilio', 'Documentos', 'Generar'];
