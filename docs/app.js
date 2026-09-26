@@ -705,10 +705,14 @@ async function generate(final) {
       ? `${folio} ${nombreCliente}.pdf`
       : `${nombreCliente}.pdf`;
 
-    // --- iOS: usar Web Share para permitir "Guardar en Archivos" ---
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    // Detección de iOS (iPhone, iPad, iPod, y iPads modernos que se
+    // identifican como Mac pero tienen touch)
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     if (isIOS) {
+      // En iOS: intentar la hoja de compartir nativa
       const file = new File([blob], fileName, { type: 'application/pdf' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -717,21 +721,27 @@ async function generate(final) {
             files: [file],
             title: fileName
           });
+          return;
         } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Error al compartir:', err);
-          }
+          // Usuario canceló la hoja: no hacer nada más
+          if (err.name === 'AbortError') return;
+          console.warn('Share falló, intentando fallback:', err);
         }
-        return; // Salimos aquí para no caer en la descarga tradicional
       }
+
+      // Fallback: abrir el PDF en una pestaña nueva
+      // (iOS lo muestra en el visor y desde ahí se puede guardar)
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+      return;
     }
 
-    // --- Descarga normal (Desktop, Android, iOS viejo) ---
+    // --- Descarga normal (Desktop, Android, otros) ---
     const url = URL.createObjectURL(blob);
     const a   = document.createElement('a');
     a.href = url;
     a.download = fileName;
-
     document.body.appendChild(a);
     a.click();
     a.remove();
