@@ -13,7 +13,8 @@ const CREDENTIALS = [
   { estrategia: '10000741', clave: '355882' },
   { estrategia: '10001147', clave: '354983' },
   { estrategia: '10001147', clave: '350658' },
-  { estrategia: '10001147', clave: '35059' }
+  { estrategia: '10001147', clave: '35059' },
+  { estrategia: '10000741', clave: '331943' }
   
   
 ];
@@ -77,6 +78,7 @@ const GROUPS = {
 };
 
 const DOCS = [
+  ['recibo_pago',  'Recibo de pago'],
   ['ine_frente',   'INE frente'],
   ['ine_reverso',  'INE reverso'],
   ['fachada',      'Foto de fachada'],
@@ -447,6 +449,45 @@ const MARK_STYLE = {
   pago_dif_inst:     { scale: 1.0, dx: -5, dy: 10 }
 };
 
+async function prependImagePage(mainPdf, file) {
+  const tmpPdf = await PDFLib.PDFDocument.create();
+  const bytes  = await file.arrayBuffer();
+  let img;
+
+  if (file.type === 'image/png') {
+    img = await tmpPdf.embedPng(bytes);
+  } else if (file.type === 'image/jpeg') {
+    img = await tmpPdf.embedJpg(bytes);
+  } else {
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    canvas.width  = bitmap.width;
+    canvas.height = bitmap.height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0);
+    const jpg = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.85));
+    img = await tmpPdf.embedJpg(await jpg.arrayBuffer());
+    bitmap.close();
+  }
+
+  const page = tmpPdf.addPage([595.28, 841.89]);
+  const maxW = page.getWidth()  - 48;
+  const maxH = page.getHeight() - 48;
+  const scale = Math.min(maxW / img.width, maxH / img.height);
+  const w = img.width  * scale;
+  const h = img.height * scale;
+
+  page.drawImage(img, {
+    x: (page.getWidth()  - w) / 2,
+    y: (page.getHeight() - h) / 2,
+    width: w,
+    height: h
+  });
+
+  const [copied] = await mainPdf.copyPages(tmpPdf, [0]);
+  mainPdf.insertPage(0, copied);   // ← al inicio del PDF
+}
+
+
 /* ---------------- Dibujo sobre el PDF ---------------- */
 
 function drawField(page, font, f, text) {
@@ -683,10 +724,16 @@ async function generate(final) {
       await appendTemplatePage(pdf, PORTA_PDF_URL, PORTA_FIELDS_URL);
     }
 
-    // 4) EVIDENCIAS
+    // 4) EVIDENCIAS (excepto recibo_pago y folio_imagen en validación)
     for (const [key] of DOCS) {
+      if (key === 'recibo_pago') continue;              // se maneja aparte
       if (key === 'folio_imagen' && !final) continue;
       if (state.files[key]) await appendImage(pdf, state.files[key]);
+    }
+
+    // 5) RECIBO DE PAGO → al inicio del PDF (si se cargó)
+    if (state.files.recibo_pago) {
+      await prependImagePage(pdf, state.files.recibo_pago);
     }
 
     const bytes = await pdf.save();
@@ -706,39 +753,31 @@ async function generate(final) {
       ? `${folio} ${nombreCliente}.pdf`
       : `${nombreCliente}.pdf`;
 
-    // Detección de iOS (iPhone, iPad, iPod, y iPads modernos que se
-    // identifican como Mac pero tienen touch)
+    // Detección de iOS
     const isIOS =
       /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     if (isIOS) {
-      // En iOS: intentar la hoja de compartir nativa
       const file = new File([blob], fileName, { type: 'application/pdf' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({
-            files: [file],
-            title: fileName
-          });
+          await navigator.share({ files: [file], title: fileName });
           return;
         } catch (err) {
-          // Usuario canceló la hoja: no hacer nada más
           if (err.name === 'AbortError') return;
           console.warn('Share falló, intentando fallback:', err);
         }
       }
 
-      // Fallback: abrir el PDF en una pestaña nueva
-      // (iOS lo muestra en el visor y desde ahí se puede guardar)
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 120000);
       return;
     }
 
-    // --- Descarga normal (Desktop, Android, otros) ---
+    // Descarga normal (Desktop, Android)
     const url = URL.createObjectURL(blob);
     const a   = document.createElement('a');
     a.href = url;
