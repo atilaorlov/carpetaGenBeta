@@ -12,7 +12,8 @@ const CREDENTIALS = [
   { estrategia: '10001147', clave: '350665' },
   { estrategia: '10000741', clave: '355882' },
   { estrategia: '10001147', clave: '354983' },
-  { estrategia: '10001147', clave: '350658' }
+  { estrategia: '10001147', clave: '350658' },
+  { estrategia: '10001147', clave: '35059' }
   
   
 ];
