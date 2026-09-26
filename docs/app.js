@@ -688,9 +688,6 @@ async function generate(final) {
 
     const bytes = await pdf.save();
     const blob  = new Blob([bytes], { type: 'application/pdf' });
-    const url   = URL.createObjectURL(blob);
-    const a     = document.createElement('a');
-    a.href = url;
 
     // Nombre del archivo: "Nombre(s) ApellidoP ApellidoM.pdf"
     // Si es carpeta final, se le antepone el folio SIAC.
@@ -702,9 +699,36 @@ async function generate(final) {
 
     const folio = String(state.data.folio_siac || '').trim();
 
-    a.download = (final && folio)
+    const fileName = (final && folio)
       ? `${folio} ${nombreCliente}.pdf`
       : `${nombreCliente}.pdf`;
+
+    // --- iOS: usar Web Share para permitir "Guardar en Archivos" ---
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    if (isIOS) {
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: fileName
+          });
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.error('Error al compartir:', err);
+          }
+        }
+        return; // Salimos aquí para no caer en la descarga tradicional
+      }
+    }
+
+    // --- Descarga normal (Desktop, Android, iOS viejo) ---
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
 
     document.body.appendChild(a);
     a.click();
