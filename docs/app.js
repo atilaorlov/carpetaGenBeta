@@ -83,7 +83,7 @@ const GROUPS = {
 };
 
 const DOCS = [
-  ['recibo_pago',  'Recibo de pago'],
+  ['recibo_pago',  'Estado de Cuenta'],
   ['ine_frente',   'INE frente'],
   ['ine_reverso',  'INE reverso'],
   ['fachada',      'Foto de fachada'],
