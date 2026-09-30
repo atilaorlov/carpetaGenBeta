@@ -726,8 +726,13 @@ async function generate(final) {
     // 2) AVISO DE PRIVACIDAD (siempre)
     await appendTemplatePage(pdf, AVISO_PDF_URL, AVISO_FIELDS_URL);
 
-    // 3) PORTABILIDAD (solo si es cliente portado)
-    if (state.data.tipo_cliente === 'portado') {
+    // 3) PORTABILIDAD (solo si es cliente portado Y tiene datos de portabilidad)
+    const tieneDatosPorta =
+      String(state.data.numero_a_portarr || '').trim() &&
+      String(state.data.nip             || '').trim() &&
+      String(state.data.fecha_nip       || '').trim();
+
+    if (state.data.tipo_cliente === 'portado' && tieneDatosPorta) {
       await appendTemplatePage(pdf, PORTA_PDF_URL, PORTA_FIELDS_URL);
     }
 
