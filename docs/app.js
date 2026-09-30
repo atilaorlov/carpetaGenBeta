@@ -93,6 +93,21 @@ const DOCS = [
   ['folio_imagen', 'Imagen del folio']
 ];
 
+// Campos que se ocultan por defecto (se pueden mostrar con el botón "Mostrar opcionales")
+const HIDDEN_BY_DEFAULT = new Set([
+  'telefono_para_contratar',
+  'rfc',
+  'observaciones',
+  'manzana',
+  'lote',
+  'edificio',
+  'subnumero',
+  'giro_comercial',
+  'terminal',
+  'zona',
+  'alguna_referencia'
+]);
+
 const DEFAULT_DATA = {
   tipo_cliente:  'nuevo',
   tipo_servicio: 'residencial',
@@ -105,7 +120,9 @@ const state = {
   data: { ...DEFAULT_DATA },
   files: {},
   fields: [],
-  auth: null
+  auth: null,
+  expanded: {}    // ← NUEVA: controla qué pasos tienen los opcionales abiertos
+
 };
 
 const $ = s => document.querySelector(s);
@@ -277,7 +294,21 @@ function render() {
         ['numero_a_portarr', 'nip', 'fecha_nip'].includes(f[2]) &&
         state.data.tipo_cliente !== 'portado')
     );
-    html += items.map(field).join('');
+
+    const visibles = items.filter(f => !HIDDEN_BY_DEFAULT.has(f[2]));
+    const ocultos  = items.filter(f =>  HIDDEN_BY_DEFAULT.has(f[2]));
+
+    html += visibles.map(field).join('');
+
+    if (ocultos.length) {
+      const expanded = !!state.expanded?.[state.step];
+      if (expanded) {
+        html += ocultos.map(field).join('');
+        html += `<button type="button" class="secondary wide" id="toggle-more">Ocultar campos opcionales</button>`;
+      } else {
+        html += `<button type="button" class="secondary wide" id="toggle-more">Mostrar campos opcionales (${ocultos.length})</button>`;
+      }
+    }
   }
 
   if (state.step === 4) {
@@ -369,17 +400,26 @@ $('#panel').addEventListener('click', async e => {
     return;
   }
 
+  if (t.id === 'toggle-more') {
+    state.expanded = state.expanded || {};
+    state.expanded[state.step] = !state.expanded[state.step];
+    render();
+    return;
+  }
+
   if (t.id === 'validation') { await generate(false); return; }
   if (t.id === 'final')      { await generate(true);  return; }
   if (t.id === 'logout')     { await doLogout();      return; }
 
   if (t.id === 'reset' &&
       confirm('¿Borrar los datos y documentos de esta solicitud en este navegador?')) {
+    
     state.data  = { ...DEFAULT_DATA };
     state.data.estrategia     = state.auth?.estrategia     || '';
     state.data.clave_promotor = state.auth?.clave          || '';
     state.files = {};
     state.step  = 0;
+    state.expanded = {};   // ← NUEVA
     await store('data', state.data);
     await store('files', state.files);
     render();
