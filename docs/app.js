@@ -21,7 +21,10 @@ const CREDENTIALS = [
   { estrategia: '10000741', clave: '355877' }, // Fran
   { estrategia: '10000741', clave: '353342' }, // Leah
   { estrategia: '10000741', clave: '354598' }, // Sara
-  { estrategia: '10000741', clave: '352957' } // Brayan
+  { estrategia: '10000741', clave: '352957' }, // Brayan
+  { estrategia: '10000741', clave: '346409' } // Armando
+
+  
   
   
   
